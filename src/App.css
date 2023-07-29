@@ -9,17 +9,18 @@
   max-width: 1280px;
   height: fit-content;
   padding: 0 2rem 2rem 2rem;
-  margin-top: 1rem;
+  margin: var(--gap);
   text-align: center;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 1rem;
+  border-radius: var(--gap);
+  background-color: var(--container-background-color);
 }
 
 .item-input {
   font-size: large;
-  padding: 1rem;
-  border-radius: 1rem;
-  margin-bottom: 1rem;
+  padding: var(--gap);
+  border-radius: var(--gap);
+  margin-bottom: var(--gap);
   width: 24rem;
 }
 
@@ -43,8 +44,8 @@ button:active {
 .item {
   cursor: pointer;
   width: 100%;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  padding: var(--half-gap) var(--gap);
+  border-radius: var(--half-gap);
 }
 
 .item.checked {

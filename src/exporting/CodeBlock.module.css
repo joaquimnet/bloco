@@ -1,0 +1,8 @@
+.CodeBlock {
+  height: 16rem;
+  width: 100%;
+  overflow: scroll;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.05);
+  text-align: left;
+}

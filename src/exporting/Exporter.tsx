@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Modal } from '../components/modal/Modal';
 import { play } from '../audio/audio';
 import { copyToClipboard } from './copy-to-clipboard';
+import { CodeBlock } from './CodeBlock';
 
 type Props = {
   items: object[];
@@ -20,18 +21,7 @@ export const Exporter = (props: Props) => {
   return (
     <>
       <Modal show={show} onClose={() => setShow(false)}>
-        <pre
-          style={{
-            height: '16rem',
-            width: '100%',
-            overflow: 'scroll',
-            fontFamily: 'monospace',
-            background: 'rgba(0, 0, 0, 0.05)',
-            textAlign: 'left',
-          }}
-        >
-          {content}
-        </pre>
+        <CodeBlock>{content}</CodeBlock>
         <button style={{ width: '80%' }} onClick={onCopy}>
           COPY
         </button>

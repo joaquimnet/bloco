@@ -1,0 +1,6 @@
+.ImportExportButtons {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid grey;
+  padding-top: 1rem;
+}

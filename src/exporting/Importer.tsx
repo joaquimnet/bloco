@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Modal } from '../components/modal/Modal';
 import { play } from '../audio/audio';
 import { Item } from '../interface/Item';
+import { ImportTextArea } from './ImportTextArea';
 
 type Props = {
   setItems: React.Dispatch<React.SetStateAction<Item[]>>;
@@ -46,18 +47,7 @@ export const Importer = (props: Props) => {
   return (
     <>
       <Modal show={show} onClose={() => setShow(false)}>
-        <textarea
-          style={{
-            height: '16rem',
-            width: '100%',
-            overflow: 'scroll',
-            fontFamily: 'monospace',
-            background: 'rgba(0, 0, 0, 0.05)',
-            textAlign: 'left',
-          }}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
+        <ImportTextArea value={content} setContent={setContent} />
         <div
           style={{
             padding: '1rem',

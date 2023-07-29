@@ -4,10 +4,9 @@ import classNames from 'classnames';
 import './App.css';
 import { useLocalStorage } from './use-local-storage.hook';
 import { play } from './audio/audio';
-import { Exporter } from './exporting/Exporter';
 import { Tips } from './components/tips/Tips';
 import { Item } from './interface/Item';
-import { Importer } from './exporting/Importer';
+import { ImportExportButtons } from './exporting/ImportExportButtons';
 
 function App() {
   const [text, setText] = useState('');
@@ -166,10 +165,7 @@ function App() {
           );
         })}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-around', borderTop: '1px solid grey', paddingTop: '1rem' }}>
-        <Importer setItems={setItems} />
-        <Exporter items={items} />
-      </div>
+      <ImportExportButtons items={items} setItems={setItems} />
       <Tips items={items} text={text} />
     </div>
   );

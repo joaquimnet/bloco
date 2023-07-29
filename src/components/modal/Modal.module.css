@@ -1,0 +1,31 @@
+.ModalContainer {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.Modal {
+  width: 32rem;
+  min-height: 16rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: rgb(255, 255, 255);
+  margin-top: -8rem;
+  background-color: #242424;
+}
+
+@media (prefers-color-scheme: light) {
+  .Modal {
+    background-color: #ffffff;
+  }
+}

@@ -17,11 +17,25 @@
 }
 
 .item-input {
-  font-size: large;
+  font-size: medium;
   padding: var(--gap);
   border-radius: var(--gap);
   margin-bottom: var(--gap);
   width: 24rem;
+}
+
+.options-menu {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.filter-input {
+  font-size: large;
+  padding: var(--half-gap);
+  border-radius: var(--gap);
+  margin-bottom: var(--half-gap);
+  width: 12rem;
 }
 
 button {
@@ -32,6 +46,10 @@ button:hover {
 }
 button:active {
   transform: scale(0.9);
+}
+button.active {
+  background: rgba(50, 50, 255, 0.1);
+  border: 1px solid blue;
 }
 
 .items {
@@ -46,6 +64,8 @@ button:active {
   width: 100%;
   padding: var(--half-gap) var(--gap);
   border-radius: var(--half-gap);
+  transition: all 100ms;
+  height: fit-content;
 }
 
 .item.checked {
@@ -53,9 +73,6 @@ button:active {
   text-decoration: line-through;
 }
 
-.item {
-  transition: all 100ms;
-}
 .item:hover {
   /* transform: scale(1.1); */
   background-color: rgba(0, 0, 0, 0.1);
@@ -67,4 +84,21 @@ button:active {
 .item img {
   max-width: 100%;
   max-height: 250px;
+}
+
+.item.editing {
+  background: rgba(50, 50, 255, 0.1);
+  border: 1px solid blue;
+}
+
+.item.random {
+  background: rgba(255, 50, 176, 0.1);
+  border: 1px solid rgb(255, 0, 106);
+}
+
+.twemoji {
+  width: 18px;
+  height: 18px;
+  display: inline;
+  vertical-align: middle;
 }

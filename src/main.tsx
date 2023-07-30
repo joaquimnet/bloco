@@ -5,6 +5,7 @@ import App from './App.tsx';
 
 import './theme.css';
 import 'react-toastify/dist/ReactToastify.css';
+import 'yet-another-react-lightbox/styles.css';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

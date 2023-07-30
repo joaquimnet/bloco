@@ -1,5 +1,7 @@
 import { ChangeEvent, ClipboardEvent, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
+import Lightbox from 'yet-another-react-lightbox';
+import Twemoji from 'react-twemoji';
 
 import './App.css';
 import { useLocalStorage } from './use-local-storage.hook';
@@ -7,6 +9,12 @@ import { play } from './audio/audio';
 import { Tips } from './components/tips/Tips';
 import { Item } from './interface/Item';
 import { ImportExportButtons } from './exporting/ImportExportButtons';
+
+const EMOJI_SUBSTITUTIONS = {
+  'note: ': '📝 ',
+  'bloco: ': '⬛ ',
+  'idea: ': '💡',
+};
 
 function App() {
   const [text, setText] = useState('');
@@ -16,6 +24,10 @@ function App() {
   const [firstLoadFinished, setFirstLoadFinished] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [editItem, setEditItem] = useState<Item | null>();
+  const [filter, setFilter] = useState('');
+  const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[] | null>(null);
+  const [randomlySelectedItem, setRandomlySelectedItem] = useState<Item | null>(null);
+  const [showOnlyUnchecked, setShowOnlyUnchecked] = useState(false);
 
   // first render, load items and focus on the text box
   useEffect(() => {
@@ -29,6 +41,12 @@ function App() {
       save({ items });
     }
   }, [items]);
+
+  useEffect(() => {
+    if (randomlySelectedItem) {
+      setRandomlySelectedItem(null);
+    }
+  }, [text, reverse]);
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (editItem) {
@@ -71,7 +89,6 @@ function App() {
     play('CHECK');
 
     if (e.shiftKey) {
-      console.log('EDITING', item);
       inputRef?.current?.focus();
       setEditItem(item);
       return;
@@ -100,7 +117,20 @@ function App() {
     }
   };
 
-  const sortedItems = useMemo(() => (reverse ? [...items].reverse() : items), [reverse, items]);
+  const sortedItems = useMemo(() => {
+    let arr = reverse ? [...items].reverse() : items;
+    if (filter?.length) {
+      arr = arr.filter((item) => item.text.toLowerCase().includes(filter.toLowerCase()));
+    }
+    if (showOnlyUnchecked) {
+      arr = arr.filter((item) => !item.checked);
+    }
+    return arr;
+  }, [reverse, items, filter, showOnlyUnchecked]);
+
+  const itemsEligibleForRandomSelection = useMemo(() => {
+    return sortedItems.filter((item) => !item.checked);
+  }, [sortedItems]);
 
   return (
     <div id="container">
@@ -114,7 +144,6 @@ function App() {
             if (editItem && e.key === 'Escape') {
               setEditItem(null);
               play('DING');
-              console.log('CANCELLING EDIT');
             }
           }}
           value={editItem ? editItem.text : text}
@@ -122,24 +151,67 @@ function App() {
           className="item-input"
         />
       </form>
-      <button onClick={() => setReverse((r) => !r)}>▲▼</button>
+      <div className="options-menu">
+        <input
+          type="text"
+          onChange={(e) => setFilter(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setFilter('');
+            }
+          }}
+          value={filter}
+          className="filter-input"
+          placeholder="filter items here..."
+        />
+        <div>
+          <button
+            className={classNames({ active: reverse })}
+            style={{ margin: '0 0.25rem' }}
+            onClick={() => setReverse((r) => !r)}
+          >
+            ▲▼
+          </button>
+          <button
+            className={classNames({ active: showOnlyUnchecked })}
+            style={{ margin: '0 0.25rem' }}
+            onClick={() => setShowOnlyUnchecked((r) => !r)}
+          >
+            ☑️
+          </button>
+          <button
+            style={{ margin: '0 0.25rem' }}
+            onClick={() => {
+              if (itemsEligibleForRandomSelection.length) {
+                setRandomlySelectedItem(
+                  itemsEligibleForRandomSelection[Math.floor(Math.random() * itemsEligibleForRandomSelection.length)],
+                );
+              }
+              play('DING');
+            }}
+          >
+            🎲
+          </button>
+        </div>
+      </div>
       <hr />
       <div className="items">
         {sortedItems.map((item, i) => {
           const { text, links, images } = placeEmbeds(item.text);
           return (
             <div
-              key={`item-${i}`}
-              className={classNames('item', { checked: item.checked })}
+              key={item.id}
+              className={classNames('item', {
+                checked: item.checked,
+                editing: item.id === editItem?.id,
+                random: item.id === randomlySelectedItem?.id,
+              })}
               onClick={onItemCheck(item)}
               onContextMenu={onItemRemove(item)}
-              style={{
-                background: item.id === editItem?.id ? 'rgba(50,50,255,0.1)' : undefined,
-                border: item.id === editItem?.id ? '1px solid blue' : undefined,
-              }}
             >
-              <span>➜ {text}</span>
-              <br />
+              <Twemoji options={{ className: 'twemoji' }}>
+                <span>➜ {applySubstitutions(text)}</span>
+              </Twemoji>
               {!!links.length &&
                 links.map((l, ii) => (
                   <span key={`item-${i}-link-${ii}`}>
@@ -158,14 +230,28 @@ function App() {
               {!!images.length &&
                 images.map((img, ii) => (
                   <span key={`item-${i}-img-${ii}`}>
-                    <img src={img} onContextMenu={(e) => e.stopPropagation()} />
+                    <img
+                      src={img}
+                      onContextMenu={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+
+                        setLightboxSlides([{ src: img }]);
+                      }}
+                    />
                   </span>
                 ))}
             </div>
           );
         })}
       </div>
-      <ImportExportButtons items={items} setItems={setItems} />
+      <Lightbox
+        open={Number(lightboxSlides?.length) > 0}
+        close={() => setLightboxSlides(null)}
+        slides={lightboxSlides!}
+      />
+      <ImportExportButtons items={sortedItems} setItems={setItems} />
       <Tips items={items} text={text} />
     </div>
   );
@@ -190,6 +276,16 @@ function placeEmbeds(text: string) {
     .trim();
 
   return { text: newText, links: [...linkSet], images: [...imageSet] };
+}
+
+function applySubstitutions(text: string) {
+  let newText = text;
+
+  for (const sub of Object.keys(EMOJI_SUBSTITUTIONS)) {
+    newText = newText.replace(new RegExp(sub, 'i'), EMOJI_SUBSTITUTIONS[sub as keyof typeof EMOJI_SUBSTITUTIONS]);
+  }
+
+  return newText;
 }
 
 export default App;

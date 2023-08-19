@@ -1,0 +1,49 @@
+.Items {
+  display: flex;
+  width: 24rem;
+  text-align: left;
+  flex-direction: column;
+}
+
+.Item {
+  cursor: pointer;
+  width: 100%;
+  padding: var(--half-gap) var(--gap);
+  border-radius: var(--half-gap);
+  transition: all 100ms;
+  height: fit-content;
+}
+
+.Item.checked {
+  color: gray;
+  text-decoration: line-through;
+}
+
+.Item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.Item:active {
+  transform: scale(0.98);
+}
+
+.Item img {
+  max-width: 100%;
+  max-height: 250px;
+}
+
+.Item.editing {
+  background: rgba(50, 50, 255, 0.1);
+  border: 1px solid blue;
+}
+
+.Item.random {
+  background: rgba(255, 50, 176, 0.1);
+  border: 1px solid rgb(255, 0, 106);
+}
+
+.Twemoji {
+  width: 18px;
+  height: 18px;
+  display: inline;
+  vertical-align: middle;
+}

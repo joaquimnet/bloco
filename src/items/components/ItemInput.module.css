@@ -1,0 +1,7 @@
+.ItemInput {
+  font-size: medium;
+  padding: var(--gap);
+  border-radius: var(--gap);
+  margin-bottom: var(--gap);
+  width: 100%;
+}

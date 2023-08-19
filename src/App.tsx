@@ -1,20 +1,16 @@
-import { ChangeEvent, ClipboardEvent, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
-import classNames from 'classnames';
+import { ChangeEvent, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
-import Twemoji from 'react-twemoji';
 
-import './App.css';
-import { useLocalStorage } from './use-local-storage.hook';
 import { play } from './audio/audio';
 import { Tips } from './components/tips/Tips';
-import { Item } from './interface/Item';
-import { ImportExportButtons } from './exporting/ImportExportButtons';
-
-const EMOJI_SUBSTITUTIONS = {
-  'note: ': '📝 ',
-  'bloco: ': '⬛ ',
-  'idea: ': '💡',
-};
+import { Layout } from './components/layout/Layout';
+import { useLocalStorage } from './hooks/use-local-storage.hook';
+import { useOnPaste } from './hooks/use-on-paste.hoot';
+import { Item } from './items/interface/Item.interface';
+import { ImportExportButtons } from './items/exporting/ImportExportButtons';
+import { ItemList } from './items/components/ItemList';
+import { OptionsMenu } from './items/components/OptionsMenu';
+import { ItemInput } from './items/components/ItemInput';
 
 function App() {
   const [text, setText] = useState('');
@@ -28,6 +24,7 @@ function App() {
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[] | null>(null);
   const [randomlySelectedItem, setRandomlySelectedItem] = useState<Item | null>(null);
   const [showOnlyUnchecked, setShowOnlyUnchecked] = useState(false);
+  const { onPaste } = useOnPaste((pastedText) => setText((previous) => `${previous} ${pastedText}`));
 
   // first render, load items and focus on the text box
   useEffect(() => {
@@ -48,7 +45,7 @@ function App() {
     }
   }, [text, reverse]);
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const onItemInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (editItem) {
       setItems((tt) => {
         const newItems = tt.map((ttt) => {
@@ -66,7 +63,7 @@ function App() {
     setText(e.target.value);
   };
 
-  const onSubmit = (e: any) => {
+  const onItemAdded = (e: any) => {
     if (editItem) {
       setEditItem(null);
       play('DING');
@@ -103,18 +100,13 @@ function App() {
     setItems((it) => it.filter((itt) => itt.id !== item.id));
   };
 
-  const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    const items = e.clipboardData.items;
-    for (const index in items) {
-      const item = items[index];
-      if (item.kind === 'file') {
-        e.preventDefault();
-        const blob = item.getAsFile()!;
-        const reader = new FileReader();
-        reader.onload = (ev) => setText((t) => `${t} ${ev.target!.result}`);
-        reader.readAsDataURL(blob);
-      }
-    }
+  const onItemEditingFinished = () => {
+    setEditItem(null);
+    play('DING');
+  };
+
+  const onImageClicked = (src: string) => {
+    setLightboxSlides([{ src }]);
   };
 
   const sortedItems = useMemo(() => {
@@ -132,120 +124,49 @@ function App() {
     return sortedItems.filter((item) => !item.checked);
   }, [sortedItems]);
 
-  return (
-    <div id="container">
-      <h1>Bloco</h1>
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          onChange={onChange}
-          onPaste={onPaste}
-          onKeyDown={(e) => {
-            if (editItem && e.key === 'Escape') {
-              setEditItem(null);
-              play('DING');
-            }
-          }}
-          value={editItem ? editItem.text : text}
-          ref={inputRef}
-          className="item-input"
-        />
-      </form>
-      <div className="options-menu">
-        <input
-          type="text"
-          onChange={(e) => setFilter(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setFilter('');
-            }
-          }}
-          value={filter}
-          className="filter-input"
-          placeholder="filter items here..."
-        />
-        <div>
-          <button
-            className={classNames({ active: reverse })}
-            style={{ margin: '0 0.25rem' }}
-            onClick={() => setReverse((r) => !r)}
-          >
-            ▲▼
-          </button>
-          <button
-            className={classNames({ active: showOnlyUnchecked })}
-            style={{ margin: '0 0.25rem' }}
-            onClick={() => setShowOnlyUnchecked((r) => !r)}
-          >
-            ☑️
-          </button>
-          <button
-            style={{ margin: '0 0.25rem' }}
-            onClick={() => {
-              if (itemsEligibleForRandomSelection.length) {
-                setRandomlySelectedItem(
-                  itemsEligibleForRandomSelection[Math.floor(Math.random() * itemsEligibleForRandomSelection.length)],
-                );
-              }
-              play('DING');
-            }}
-          >
-            🎲
-          </button>
-        </div>
-      </div>
-      <hr />
-      <div className="items">
-        {sortedItems.map((item, i) => {
-          const { text, links, images } = placeEmbeds(item.text);
-          return (
-            <div
-              key={item.id}
-              className={classNames('item', {
-                checked: item.checked,
-                editing: item.id === editItem?.id,
-                random: item.id === randomlySelectedItem?.id,
-              })}
-              onClick={onItemCheck(item)}
-              onContextMenu={onItemRemove(item)}
-            >
-              <Twemoji options={{ className: 'twemoji' }}>
-                <span>➜ {applySubstitutions(text)}</span>
-              </Twemoji>
-              {!!links.length &&
-                links.map((l, ii) => (
-                  <span key={`item-${i}-link-${ii}`}>
-                    🔗
-                    <a
-                      href={l}
-                      target="_blank"
-                      onClick={(e) => e.stopPropagation()}
-                      onContextMenu={(e) => e.stopPropagation()}
-                    >
-                      {l.replace(/(https?:\/\/|www\.)/g, '').substring(0, 25)}...
-                    </a>
-                    <br />
-                  </span>
-                ))}
-              {!!images.length &&
-                images.map((img, ii) => (
-                  <span key={`item-${i}-img-${ii}`}>
-                    <img
-                      src={img}
-                      onContextMenu={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
+  const pickRandomly = () => {
+    if (itemsEligibleForRandomSelection.length) {
+      setRandomlySelectedItem(
+        itemsEligibleForRandomSelection[Math.floor(Math.random() * itemsEligibleForRandomSelection.length)],
+      );
+    }
+    play('DING');
+  };
 
-                        setLightboxSlides([{ src: img }]);
-                      }}
-                    />
-                  </span>
-                ))}
-            </div>
-          );
-        })}
-      </div>
+  const onClearFilter = () => {
+    setFilter('');
+  };
+
+  return (
+    <Layout>
+      <ItemInput
+        value={editItem ? editItem.text : text}
+        onChange={onItemInputChange}
+        onPaste={onPaste}
+        onItemAdded={onItemAdded}
+        isEditing={!!editItem}
+        onItemEditingFinished={onItemEditingFinished}
+        inputRef={inputRef}
+      />
+      <OptionsMenu
+        filter={filter}
+        setFilter={setFilter}
+        reverse={reverse}
+        setReverse={setReverse}
+        showOnlyUnchecked={showOnlyUnchecked}
+        setShowOnlyUnchecked={setShowOnlyUnchecked}
+        pickRandomly={pickRandomly}
+        onClearFilter={onClearFilter}
+      />
+      <hr />
+      <ItemList
+        items={sortedItems}
+        editItem={editItem}
+        randomlySelectedItem={randomlySelectedItem}
+        onItemCheck={onItemCheck}
+        onItemRemove={onItemRemove}
+        onImageClicked={onImageClicked}
+      />
       <Lightbox
         open={Number(lightboxSlides?.length) > 0}
         close={() => setLightboxSlides(null)}
@@ -253,39 +174,8 @@ function App() {
       />
       <ImportExportButtons items={sortedItems} setItems={setItems} />
       <Tips items={items} text={text} />
-    </div>
+    </Layout>
   );
-}
-
-const urlRegex = /(https?:\/\/[^\s]+)/g;
-const base64Regex = /data:image[^\s]+/g;
-
-function placeEmbeds(text: string) {
-  const linkSet = new Set<string>();
-  const imageSet = new Set<string>();
-
-  const newText = text
-    .replace(urlRegex, (match) => {
-      linkSet.add(match);
-      return '[LINK]';
-    })
-    .replace(base64Regex, (match) => {
-      imageSet.add(match);
-      return '';
-    })
-    .trim();
-
-  return { text: newText, links: [...linkSet], images: [...imageSet] };
-}
-
-function applySubstitutions(text: string) {
-  let newText = text;
-
-  for (const sub of Object.keys(EMOJI_SUBSTITUTIONS)) {
-    newText = newText.replace(new RegExp(sub, 'i'), EMOJI_SUBSTITUTIONS[sub as keyof typeof EMOJI_SUBSTITUTIONS]);
-  }
-
-  return newText;
 }
 
 export default App;

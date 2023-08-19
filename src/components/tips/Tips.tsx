@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocalStorage } from '../../use-local-storage.hook';
+import { useLocalStorage } from '../../hooks/use-local-storage.hook';
 import { toast } from 'react-toastify';
 
 interface AllTips {

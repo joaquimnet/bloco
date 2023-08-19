@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Modal } from '../components/modal/Modal';
-import { play } from '../audio/audio';
-import { Item } from '../interface/Item';
+import { Modal } from '../../../components/modal/Modal';
+import { play } from '../../../audio/audio';
+import { Item } from '../../interface/Item.interface';
 import { ImportTextArea } from './ImportTextArea';
 
 type Props = {

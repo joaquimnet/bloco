@@ -1,7 +1,7 @@
 import React from 'react';
-import { Item } from '../interface/Item';
-import { Exporter } from './Exporter';
-import { Importer } from './Importer';
+import { Item } from '../interface/Item.interface';
+import { Exporter } from './exporter/Exporter';
+import { Importer } from './importer/Importer';
 
 import styles from './ImportExportButtons.module.css';
 
